@@ -1,0 +1,106 @@
+1 from collections import deque
+import time
+
+2 # Graph
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A','D', 'E'],
+    'C': ['A','F'],
+    'D': ['B'],
+    'E': ['B','F','G'],
+    'F': ['C', 'E','H'],
+    'G': ['E','H'],
+    'H': ['F','G'],
+}
+
+3 # ---------------- BFS ----------------
+def bfs(graph, start, goal):
+    start_time = time.perf_counter()
+
+    queue = deque([[start]])
+    visited = set()
+    nodes_explored = 0
+
+    while queue:
+        path = queue.popleft()
+        node = path[-1]
+
+        if node in visited:
+            continue
+
+        visited.add(node)
+        nodes_explored += 1
+
+        if node == goal:
+            execution_time = time.perf_counter() - start_time
+            return path, nodes_explored, execution_time
+
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                queue.append(path + [neighbor])
+
+    execution_time = time.perf_counter() - start_time
+    return None, nodes_explored, execution_time
+
+4 # ---------------- DFS ----------------
+def dfs(graph, start, goal):
+    start_time = time.perf_counter()
+
+    stack = [[start]]
+    visited = set()
+    nodes_explored = 0
+
+    while stack:
+        path = stack.pop()
+        node = path[-1]
+
+        if node in visited:
+            continue
+
+        visited.add(node)
+        nodes_explored += 1
+
+        if node == goal:
+            execution_time = time.perf_counter() - start_time
+            return path, nodes_explored, execution_time
+
+        for neighbor in reversed(graph[node]):
+            if neighbor not in visited:
+                stack.append(path + [neighbor])
+
+    execution_time = time.perf_counter() - start_time
+    return None, nodes_explored, execution_time
+
+5 # Start and goal
+start = 'A'
+goal = 'H'
+
+6 # Run BFS
+bfs_path, bfs_nodes, bfs_time = bfs(graph, start, goal)
+
+7 # Run DFS
+dfs_path, dfs_nodes, dfs_time = dfs(graph, start, goal)
+
+8 # ---------------- Results ----------------
+
+print("\n========== BFS RESULT ==========")
+
+if bfs_path:
+    print("Path found        :", " -> ".join(bfs_path))
+    print("Path length       :", len(bfs_path) - 1)
+else:
+    print("Path found        : No path")
+
+print("Nodes explored    :", bfs_nodes)
+print("Execution time    :", f"{bfs_time:.8f} seconds")
+
+9 print("\n========== DFS RESULT ==========")
+
+if dfs_path:
+    print("Path found        :", " -> ".join(dfs_path))
+    print("Path length       :", len(dfs_path) - 1)
+else:
+    print("Path found        : No path")
+
+print("Nodes explored    :", dfs_nodes)
+print("Execution time    :", f"{dfs_time:.8f} seconds")

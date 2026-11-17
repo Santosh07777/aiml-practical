@@ -1,0 +1,158 @@
+
+# ================= CELL 1: RULE CLASS =================
+
+class Rule:
+    def __init__(self, premises, conclusion):
+        self.premises = premises
+        self.conclusion = conclusion
+
+    def __repr__(self):
+        return f"{' AND '.join(self.premises)} -> {self.conclusion}"
+
+
+# ================= CELL 2: EXPERT SYSTEM CLASS =================
+
+class ExpertSystem:
+    def __init__(self, facts, rules):
+        self.facts = set(facts)
+        self.rules = rules
+
+    # ================= CELL 3: FORWARD CHAINING =================
+
+    def forward_chaining(self, query=None):
+        facts = set(self.facts)
+        inference_trace = []
+
+        changed = True
+
+        while changed:
+            changed = False
+
+            for rule in self.rules:
+                if all(premise in facts for premise in rule.premises):
+
+                    if rule.conclusion not in facts:
+                        facts.add(rule.conclusion)
+                        inference_trace.append(
+                            f"{rule} => {rule.conclusion}"
+                        )
+                        changed = True
+
+                if query and rule.conclusion == query:
+                    return True, facts, inference_trace
+
+        if query:
+            return query in facts, facts, inference_trace
+
+        return True, facts, inference_trace
+
+    # ================= CELL 4: BACKWARD CHAINING =================
+
+    def backward_chaining(self, query):
+        visited = set()
+        trace = []
+
+        def prove(goal):
+            if goal in self.facts:
+                trace.append(f"FACT: {goal}")
+                return True
+
+            if goal in visited:
+                return False
+
+            visited.add(goal)
+
+            applicable_rules = [
+                rule for rule in self.rules
+                if rule.conclusion == goal
+            ]
+
+            for rule in applicable_rules:
+                trace.append(f"Trying rule: {rule}")
+
+                if all(prove(premise) for premise in rule.premises):
+                    trace.append(f"PROVED: {goal}")
+                    return True
+
+            trace.append(f"FAILED: {goal}")
+            return False
+
+        result = prove(query)
+        return result, trace
+
+
+# ================= CELL 5: KNOWLEDGE BASE =================
+
+facts = {
+    "fever",
+    "cough",
+    "body_pain"
+}
+
+rules = [
+    Rule(
+        ["fever", "cough", "body_pain"],
+        "flu"
+    ),
+
+    Rule(
+        ["cough", "sore_throat"],
+        "cold"
+    ),
+
+    Rule(
+        ["fever", "fatigue"],
+        "infection"
+    ),
+
+    Rule(
+        ["flu"],
+        "doctor_visit"
+    ),
+
+    Rule(
+        ["infection", "headache"],
+        "doctor_visit"
+    )
+]
+
+
+# ================= CELL 6: CREATE EXPERT SYSTEM =================
+
+expert_system = ExpertSystem(facts, rules)
+
+
+# ================= CELL 7: FORWARD CHAINING TEST =================
+
+query = "doctor_visit"
+
+result, inferred_facts, trace = \
+    expert_system.forward_chaining(query)
+
+print("FORWARD CHAINING")
+print("-----------------")
+print("Query:", query)
+print("Result:", result)
+
+print("\nInference Trace:")
+for step in trace:
+    print(step)
+
+print("\nAll Inferred Facts:")
+for fact in inferred_facts:
+    print("-", fact)
+
+
+# ================= CELL 8: BACKWARD CHAINING TEST =================
+
+result, trace = \
+    expert_system.backward_chaining(query)
+
+print("\nBACKWARD CHAINING")
+print("-----------------")
+print("Query:", query)
+print("Result:", result)
+
+print("\nInference Trace:")
+for step in trace:
+    print(step)

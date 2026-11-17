@@ -1,0 +1,232 @@
+1 import heapq
+import math
+import time
+
+2 graph = {
+    'A': {'B': 2, 'C': 5},
+    'B': {'A': 2, 'C': 1, 'D': 4},
+    'C': {'A': 5, 'B': 1, 'D': 1, 'E': 5},
+    'D': {'B': 4, 'C': 1, 'E': 1, 'F': 3},
+    'E': {'C': 5, 'D': 1, 'F': 1},
+    'F': {'D': 3, 'E': 1, 'G': 2},
+    'G': {'F': 2}
+}
+
+3 coordinates = {
+    'A': (0, 0),
+    'B': (1, 2),
+    'C': (2, 1),
+    'D': (3, 2),
+    'E': (4, 1),
+    'F': (5, 2),
+    'G': (6, 2)
+}
+
+4 def heuristic(node, goal):
+    """
+    Euclidean distance between node and goal.
+    """
+    x1, y1 = coordinates[node]
+    x2, y2 = coordinates[goal]
+
+    return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
+5 def reconstruct_path(parent, start, goal):
+    """
+    Reconstruct the path from start to goal.
+    """
+    path = []
+    current = goal
+
+    while current is not None:
+        path.append(current)
+
+        if current == start:
+            break
+
+        current = parent[current]
+
+    path.reverse()
+
+    if path[0] != start:
+        return None
+
+    return path
+
+6 def path_cost(path, graph):
+    if path is None:
+        return float('inf')
+
+    cost = 0
+
+    for i in range(len(path) - 1):
+        cost += graph[path[i]][path[i + 1]]
+
+    return cost
+
+7 def greedy_best_first_search(graph, start, goal):
+    """
+    Greedy Best-First Search
+
+    Priority:
+        f(n) = h(n)
+
+    Returns:
+        path, cost, nodes_expanded
+    """
+
+    priority_queue = []
+
+    # (heuristic, node)
+    heapq.heappush(
+        priority_queue,
+        (heuristic(start, goal), start)
+    )
+
+    parent = {start: None}
+    visited = set()
+
+    nodes_expanded = 0
+
+    while priority_queue:
+
+        _, current = heapq.heappop(priority_queue)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        nodes_expanded += 1
+
+        # Goal reached
+        if current == goal:
+            path = reconstruct_path(parent, start, goal)
+            return path, path_cost(path, graph), nodes_expanded
+
+        # Explore neighbors
+        for neighbor in graph[current]:
+
+            if neighbor not in visited:
+
+                if neighbor not in parent:
+                    parent[neighbor] = current
+
+                heapq.heappush(
+                    priority_queue,
+                    (heuristic(neighbor, goal), neighbor)
+                )
+
+    return None, float('inf'), nodes_expanded
+
+8 def a_star_search(graph, start, goal):
+    """
+    A* Search
+
+    Priority:
+        f(n) = g(n) + h(n)
+
+    Returns:
+        path, cost, nodes_expanded
+    """
+
+    # (f_score, g_score, node)
+    priority_queue = []
+
+    g_score = {start: 0}
+    parent = {start: None}
+
+    heapq.heappush(
+        priority_queue,
+        (heuristic(start, goal), 0, start)
+    )
+
+    nodes_expanded = 0
+
+    while priority_queue:
+
+        f_current, current_g, current = heapq.heappop(priority_queue)
+
+        # Ignore outdated queue entries
+        if current_g != g_score.get(current, float('inf')):
+            continue
+
+        nodes_expanded += 1
+
+        # Goal reached
+        if current == goal:
+            path = reconstruct_path(parent, start, goal)
+            return path, g_score[goal], nodes_expanded
+
+        # Explore neighbors
+        for neighbor, edge_cost in graph[current].items():
+
+            tentative_g = g_score[current] + edge_cost
+
+            if tentative_g < g_score.get(
+                neighbor,
+                float('inf')
+            ):
+
+                parent[neighbor] = current
+                g_score[neighbor] = tentative_g
+
+                f_score = (
+                    tentative_g +
+                    heuristic(neighbor, goal)
+                )
+
+                heapq.heappush(
+                    priority_queue,
+                    (f_score, tentative_g, neighbor)
+                )
+
+    return None, float('inf'), nodes_expanded
+
+9 start = 'A'
+goal = 'G'
+
+10 print("=" * 50)
+print("SHORTEST PATH SEARCH")
+print("=" * 50)
+
+start_time = time.perf_counter()
+
+gbfs_path, gbfs_cost, gbfs_expanded = \
+    greedy_best_first_search(graph, start, goal)
+
+gbfs_time = time.perf_counter() - start_time
+
+11 start_time = time.perf_counter()
+
+astar_path, astar_cost, astar_expanded = \
+    a_star_search(graph, start, goal)
+
+astar_time = time.perf_counter() - start_time 
+
+12 print("\nGreedy Best-First Search")
+print("-" * 30)
+print("Path           :", " -> ".join(gbfs_path))
+print("Path cost      :", gbfs_cost)
+print("Nodes expanded :", gbfs_expanded)
+print("Execution time :", gbfs_time)
+
+
+print("\nA* Search")
+print("-" * 30)
+print("Path           :", " -> ".join(astar_path))
+print("Path cost      :", astar_cost)
+print("Nodes expanded :", astar_expanded)
+print("Execution time :", astar_time)
+
+13 print("\nComparison")
+print("-" * 30)
+
+if gbfs_cost == astar_cost:
+    print("Both algorithms found paths with the same cost.")
+else:
+    print("A* found a cheaper path.")
+
+print(
+    "Cost difference:",
+    gbfs_cost - astar_cost
+)

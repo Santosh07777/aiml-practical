@@ -1,0 +1,114 @@
+
+# PR5: Data Preprocessing and Exploratory Data Analysis
+
+# 1. Install Required Libraries
+%pip install seaborn scikit-learn
+
+# 2. Import Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+# 3. Load Titanic Dataset
+df = sns.load_dataset("titanic")
+original_df = df.copy()
+
+# 4. Rename Columns
+df = df.rename(columns={
+    "survived": "Survived",
+    "pclass": "Pclass",
+    "sex": "Sex",
+    "age": "Age",
+    "sibsp": "SibSp",
+    "parch": "Parch",
+    "fare": "Fare",
+    "embarked": "Embarked"
+})
+
+# 5. Select Required Columns
+df = df[["Survived", "Pclass", "Sex", "Age",
+         "SibSp", "Parch", "Fare", "Embarked"]]
+
+# 6. Handle Missing Values
+df["Age"] = df["Age"].fillna(df["Age"].median())
+df["Fare"] = df["Fare"].fillna(df["Fare"].median())
+df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
+
+# 7. Label Encoding
+le = LabelEncoder()
+df["Sex"] = le.fit_transform(df["Sex"])
+
+# 8. One-Hot Encoding
+df = pd.get_dummies(df, columns=["Embarked"], drop_first=True)
+
+# 9. Exploratory Data Analysis
+fig, axes = plt.subplots(1, 2, figsize=(11, 4))
+
+df["Age"].hist(bins=20, ax=axes[0], color="steelblue")
+axes[0].set_title("Age Distribution")
+
+sns.boxplot(x=df["Fare"], ax=axes[1], color="orange")
+axes[1].set_title("Fare - Outlier Check")
+
+plt.tight_layout()
+plt.savefig("pr5_eda.png")
+
+# 10. Feature Scaling
+numeric_cols = ["Age", "Fare", "SibSp", "Parch"]
+
+scaler = StandardScaler()
+df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+
+# 11. Separate Input and Target Variables
+X = df.drop("Survived", axis=1)
+y = df["Survived"]
+
+# 12. Split Training and Testing Data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# 13. Display First 5 Rows
+print("First 5 Rows:")
+print(original_df.head())
+
+# 14. Display Dataset Shape
+print("\nDataset Shape:")
+print(original_df.shape)
+
+# 15. Display Dataset Information
+print("\nDataset Information:")
+df.info()
+
+# 16. Check Missing Values
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+# 17. Display Encoded Data
+print("\nEncoded Data:")
+print(df.head())
+
+# 18. Statistical Description
+print("\nStatistical Description:")
+print(df.describe())
+
+# 19. Display Scaled Data
+print("\nScaled Data:")
+print(df.head())
+
+# 20. Training Data Shape
+print("\nTraining Data Shape:")
+print(X_train.shape)
+
+# 21. Testing Data Shape
+print("\nTesting Data Shape:")
+print(X_test.shape)
+
+# 22. Completion Message
+print("\nPR5 Completed Successfully!")
+
+# 23. Display Graphs at the End
+plt.show()

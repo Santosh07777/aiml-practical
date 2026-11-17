@@ -1,0 +1,182 @@
+
+# ============================================================
+# PR10: Dimensionality Reduction Using PCA
+# Dataset: Digits Dataset (64 Features)
+# ============================================================
+
+
+# ---------------- CELL 1: Import Libraries ----------------
+
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+
+# ---------------- CELL 2: Load Dataset ----------------
+
+data = load_digits()
+
+X, y = data.data, data.target
+
+
+# ---------------- CELL 3: Data Preprocessing ----------------
+
+scaler = StandardScaler()
+
+X_scaled = scaler.fit_transform(X)
+
+
+# ---------------- CELL 4: Split Dataset ----------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+dataset_shape = X.shape
+original_features = X.shape[1]
+
+
+# ---------------- CELL 5: Baseline (Without PCA) ----------------
+
+t0 = time.perf_counter()
+
+clf = LogisticRegression(max_iter=5000)
+
+clf.fit(X_train, y_train)
+
+y_pred_before = clf.predict(X_test)
+
+acc_before = accuracy_score(y_test, y_pred_before)
+
+t_before = time.perf_counter() - t0
+
+
+# ---------------- CELL 6: PCA with 2 Components ----------------
+
+pca_2d = PCA(n_components=2)
+
+X_2d = pca_2d.fit_transform(X_scaled)
+
+
+# Create 2D PCA Plot
+
+plt.figure(figsize=(7, 6))
+
+scatter = plt.scatter(
+    X_2d[:, 0],
+    X_2d[:, 1],
+    c=y,
+    cmap="tab10",
+    s=15
+)
+
+plt.legend(
+    *scatter.legend_elements(),
+    title="Digit"
+)
+
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+
+plt.title(
+    "Digits Dataset Projected to 2 Principal Components"
+)
+
+plt.tight_layout()
+
+plt.savefig("pr10_pca_2d.png")
+
+
+# ---------------- CELL 7: PCA Retaining 95% Variance ----------------
+
+pca_95 = PCA(n_components=0.95)
+
+X_train_pca = pca_95.fit_transform(X_train)
+
+X_test_pca = pca_95.transform(X_test)
+
+reduced_features = pca_95.n_components_
+
+
+# ---------------- CELL 8: Logistic Regression After PCA ----------------
+
+t0 = time.perf_counter()
+
+clf_pca = LogisticRegression(max_iter=5000)
+
+clf_pca.fit(X_train_pca, y_train)
+
+y_pred_after = clf_pca.predict(X_test_pca)
+
+acc_after = accuracy_score(y_test, y_pred_after)
+
+t_after = time.perf_counter() - t0
+
+
+# ---------------- CELL 9: Store Comparison Results ----------------
+
+comparison_results = []
+
+comparison_results.append(
+    f"{'Metric':<25}{'Before PCA':<15}{'After PCA':<15}"
+)
+
+comparison_results.append("-" * 55)
+
+comparison_results.append(
+    f"{'Num features':<25}"
+    f"{original_features:<15}"
+    f"{reduced_features:<15}"
+)
+
+comparison_results.append(
+    f"{'Accuracy':<25}"
+    f"{acc_before:<15.4f}"
+    f"{acc_after:<15.4f}"
+)
+
+comparison_results.append(
+    f"{'Training time (s)':<25}"
+    f"{t_before:<15.4f}"
+    f"{t_after:<15.4f}"
+)
+
+
+# ---------------- CELL 10: Display All Outputs at the End ----------------
+
+print("Dataset Shape:", dataset_shape)
+
+print("Original number of features:", original_features)
+
+print("\nPCA 2D visualization saved to pr10_pca_2d.png")
+
+print(
+    "\nComponents to retain 95% variance:",
+    reduced_features
+)
+
+print("\nComparison")
+print("-" * 55)
+
+for result in comparison_results:
+    print(result)
+
+
+# ---------------- CELL 11: Display PCA Graph ----------------
+
+plt.show()
+
+
+# ============================================================
+# END OF PR10 PROGRAM
+# ============================================================

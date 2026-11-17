@@ -1,0 +1,97 @@
+1 import random
+
+2 PEAS = {
+    "Performance Measure": "Maintain room temperature between 22-26 C, "
+                           "minimize energy use, respond quickly to occupancy changes",
+    "Environment": "A single room with variable outside temperature and occupancy",
+    "Actuators": "Heater switch, Cooler switch, Status display",
+    "Sensors": "Temperature sensor, Occupancy (motion) sensor"
+}
+
+print("PEAS Representation:")
+for key, value in PEAS.items():
+    print(key, ":", value)
+
+3 class SmartHomeEnvironment:
+    """Simulated environment that generates temperature and occupancy percepts."""
+
+    def __init__(self):
+        self.temperature = 20.0
+        self.occupied = True
+
+    def get_percept(self):
+        # Simulate temperature fluctuations
+        self.temperature += random.uniform(-1.5, 1.5)
+
+        # Simulate room occupancy
+        self.occupied = random.choice([True, True, False])
+
+        return {
+            "temperature": round(self.temperature, 1),
+            "occupied": self.occupied
+        }
+
+    def apply_action(self, action):
+        # Environment reacts to agent action
+        if action == "HEATER_ON":
+            self.temperature += 1.2
+
+        elif action == "COOLER_ON":
+            self.temperature -= 1.2
+
+4 class SmartHomeAgent:
+    """Model-based reflex agent that regulates room temperature."""
+
+    LOW, HIGH = 22.0, 26.0
+
+    def __init__(self):
+        self.state = {"mode": "IDLE"}
+
+    def program(self, percept):
+        temp = percept["temperature"]
+        occupied = percept["occupied"]
+
+        # Decision making
+        if not occupied:
+            action = "IDLE"
+
+        elif temp < self.LOW:
+            action = "HEATER_ON"
+
+        elif temp > self.HIGH:
+            action = "COOLER_ON"
+
+        else:
+            action = "IDLE"
+
+        # Update internal state
+        self.state["mode"] = action
+
+        return action
+
+5 environment = SmartHomeEnvironment()
+agent = SmartHomeAgent()
+
+print("Smart Home Environment Created!")
+print("Intelligent Agent Created!")
+
+6 print("SMART HOME AGENT EXECUTION")
+
+for i in range(5):
+
+    percept = environment.get_percept()
+
+    action = agent.program(percept)
+
+    environment.apply_action(action)
+
+    print("\nStep:", i + 1)
+    print("Temperature:", percept["temperature"], "C")
+    print("Room Occupied:", percept["occupied"])
+    print("Agent Action:", action)
+    print("Current Mode:", agent.state["mode"])
+
+7 print("\n========== FINAL RESULT ==========")
+print("Final Temperature:", round(environment.temperature, 1), "C")
+print("Final Agent State:", agent.state["mode"])
+print("Smart Home Agent Executed Successfully!")

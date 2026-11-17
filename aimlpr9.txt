@@ -1,0 +1,189 @@
+
+# ============================================================
+# PR9: Clustering - K-Means and Hierarchical Clustering
+# Dataset: Synthetic Customer Data
+# ============================================================
+
+
+# ---------------- CELL 1: Import Libraries ----------------
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import make_blobs
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans, AgglomerativeClustering
+
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+
+# ---------------- CELL 2: Generate Dataset ----------------
+
+X, _ = make_blobs(
+    n_samples=200,
+    centers=5,
+    cluster_std=1.2,
+    random_state=42
+)
+
+
+# ---------------- CELL 3: Data Preprocessing ----------------
+
+scaler = StandardScaler()
+
+X_scaled = scaler.fit_transform(X)
+
+dataset_shape = X_scaled.shape
+
+
+# ---------------- CELL 4: Elbow Method ----------------
+
+wcss = []
+
+K_range = range(1, 11)
+
+for k in K_range:
+
+    km = KMeans(
+        n_clusters=k,
+        n_init=10,
+        random_state=42
+    )
+
+    km.fit(X_scaled)
+
+    wcss.append(km.inertia_)
+
+
+# Create Elbow Method Plot
+
+plt.figure(figsize=(6, 4))
+
+plt.plot(K_range, wcss, marker="o")
+
+plt.xlabel("Number of clusters (K)")
+plt.ylabel("WCSS")
+plt.title("Elbow Method")
+
+plt.grid(True)
+plt.tight_layout()
+
+plt.savefig("pr9_elbow.png")
+
+
+# ---------------- CELL 5: K-Means Clustering ----------------
+
+optimal_k = 5
+
+kmeans = KMeans(
+    n_clusters=optimal_k,
+    n_init=10,
+    random_state=42
+)
+
+km_labels = kmeans.fit_predict(X_scaled)
+
+kmeans_sizes = np.bincount(km_labels)
+
+
+# ---------------- CELL 6: Dendrogram ----------------
+
+linked = linkage(
+    X_scaled,
+    method="ward"
+)
+
+plt.figure(figsize=(8, 4))
+
+dendrogram(
+    linked,
+    truncate_mode="lastp",
+    p=15
+)
+
+plt.title("Dendrogram (Ward Linkage)")
+plt.xlabel("Sample index / cluster size")
+plt.ylabel("Distance")
+
+plt.tight_layout()
+
+plt.savefig("pr9_dendrogram.png")
+
+
+# ---------------- CELL 7: Hierarchical Clustering ----------------
+
+agg = AgglomerativeClustering(
+    n_clusters=optimal_k,
+    linkage="ward"
+)
+
+agg_labels = agg.fit_predict(X_scaled)
+
+hierarchical_sizes = np.bincount(agg_labels)
+
+
+# ---------------- CELL 8: K-Means Visualization ----------------
+
+fig, axes = plt.subplots(
+    1, 2,
+    figsize=(11, 4)
+)
+
+
+# K-Means Plot
+
+axes[0].scatter(
+    X_scaled[:, 0],
+    X_scaled[:, 1],
+    c=km_labels,
+    cmap="viridis",
+    s=30
+)
+
+axes[0].set_title("K-Means Clusters")
+axes[0].set_xlabel("Feature 1")
+axes[0].set_ylabel("Feature 2")
+
+
+# ---------------- CELL 9: Hierarchical Visualization ----------------
+
+axes[1].scatter(
+    X_scaled[:, 0],
+    X_scaled[:, 1],
+    c=agg_labels,
+    cmap="viridis",
+    s=30
+)
+
+axes[1].set_title("Hierarchical Clusters")
+axes[1].set_xlabel("Feature 1")
+axes[1].set_ylabel("Feature 2")
+
+plt.tight_layout()
+
+plt.savefig("pr9_clusters.png")
+
+
+# ---------------- CELL 10: Display All Outputs at the End ----------------
+
+print("Dataset Shape:", dataset_shape)
+
+print("\nSaved Elbow plot to pr9_elbow.png")
+
+print("\nK-Means cluster sizes:", kmeans_sizes)
+
+print("\nSaved Dendrogram to pr9_dendrogram.png")
+
+print("Hierarchical cluster sizes:", hierarchical_sizes)
+
+print("\nSaved cluster visualization to pr9_clusters.png")
+
+
+# ---------------- CELL 11: Display All Graphs ----------------
+
+plt.show()
+
+
+# ============================================================
+# END OF PR9 PROGRAM
+# ============================================================

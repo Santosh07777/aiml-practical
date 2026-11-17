@@ -1,0 +1,155 @@
+
+# PR8: Decision Tree and Gaussian Naive Bayes Classification
+
+# -------------------- 1. IMPORT LIBRARIES --------------------
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix
+)
+import matplotlib.pyplot as plt
+
+
+# -------------------- 2. LOAD DATASET --------------------
+
+data = load_breast_cancer()
+
+
+# -------------------- 3. SEPARATE FEATURES AND TARGET --------------------
+
+X = data.data
+y = data.target
+
+
+# -------------------- 4. DISPLAY DATASET INFORMATION --------------------
+
+dataset_shape = X.shape
+num_features = X.shape[1]
+target_classes = data.target_names
+
+
+# -------------------- 5. SPLIT DATASET --------------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+
+training_shape = X_train.shape
+testing_shape = X_test.shape
+
+
+# -------------------- 6. CREATE AND TRAIN DECISION TREE --------------------
+
+dt = DecisionTreeClassifier(
+    max_depth=4,
+    criterion="gini",
+    random_state=42
+)
+
+dt.fit(X_train, y_train)
+
+y_pred_dt = dt.predict(X_test)
+
+
+# -------------------- 7. CREATE AND TRAIN GAUSSIAN NAIVE BAYES --------------------
+
+nb = GaussianNB()
+
+nb.fit(X_train, y_train)
+
+y_pred_nb = nb.predict(X_test)
+
+
+# -------------------- 8. EVALUATE CLASSIFIER PERFORMANCE --------------------
+
+def evaluate(name, y_true, y_pred):
+
+    results = []
+
+    results.append(f"\n{name}")
+    results.append("-" * 45)
+
+    results.append(
+        f"Accuracy  : {accuracy_score(y_true, y_pred):.4f}"
+    )
+
+    results.append(
+        f"Precision : {precision_score(y_true, y_pred):.4f}"
+    )
+
+    results.append(
+        f"Recall    : {recall_score(y_true, y_pred):.4f}"
+    )
+
+    results.append(
+        f"F1-Score  : {f1_score(y_true, y_pred):.4f}"
+    )
+
+    results.append("Confusion Matrix:")
+    results.append(str(confusion_matrix(y_true, y_pred)))
+
+    return "\n".join(results)
+
+
+# -------------------- 9. STORE EVALUATION RESULTS --------------------
+
+decision_tree_results = evaluate(
+    "Decision Tree (max_depth=4)",
+    y_test,
+    y_pred_dt
+)
+
+naive_bayes_results = evaluate(
+    "Gaussian Naive Bayes",
+    y_test,
+    y_pred_nb
+)
+
+
+# -------------------- 10. CREATE DECISION TREE VISUALIZATION --------------------
+
+plt.figure(figsize=(14, 7))
+
+plot_tree(
+    dt,
+    feature_names=data.feature_names,
+    class_names=data.target_names,
+    filled=True,
+    max_depth=2,
+    fontsize=8
+)
+
+plt.title("Decision Tree (Top 2 Levels)")
+plt.savefig("pr8_tree.png", bbox_inches="tight")
+
+
+# -------------------- 11. DISPLAY ALL OUTPUTS AT THE END --------------------
+
+print("Dataset Shape:", dataset_shape)
+print("Number of Features:", num_features)
+print("Target Classes:", list(target_classes))
+
+print("\nTraining Data Shape:", training_shape)
+print("Testing Data Shape:", testing_shape)
+
+print("\nDecision Tree prediction completed.")
+print("Naive Bayes prediction completed.")
+
+print(decision_tree_results)
+print(naive_bayes_results)
+
+print("\nSaved decision tree visualization to pr8_tree.png")
+
+# Display Decision Tree at the end
+plt.show()
